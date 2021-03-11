@@ -79,7 +79,7 @@ class ViaVersion extends PluginBase implements Listener{
                     if($entry->username === null && $entry->entityUniqueId === null){
                         continue;
                     } else {
-                        $p = $this->getServer()->getPlayer($entry->username);
+                        $p = $this->players[TextFormat::clean($entry->username)];
                     }
                     $h = spl_object_hash($p);
                     $oP = $this->protocol[$h] ?? 419;
