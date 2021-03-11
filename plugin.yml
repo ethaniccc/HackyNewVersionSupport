@@ -1,0 +1,8 @@
+---
+name: ViaVersion
+description: Allows 1.16.100 users to join a PMMP 3.17 Server
+version: 1.0
+main: ethaniccc\ViaVersion\ViaVersion
+api: 3.17.0
+mcpe-protocol: [419, 422]
+...
