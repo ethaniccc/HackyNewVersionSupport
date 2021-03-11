@@ -8,6 +8,7 @@ use ethaniccc\ViaVersion\hacks\v419\PlayerListPacket419;
 use ethaniccc\ViaVersion\hacks\v428\PlayerListPacket428;
 use ethaniccc\ViaVersion\hacks\v428\SkinData428;
 use ethaniccc\ViaVersion\hacks\v428\StartGamePacket428;
+use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\protocol\PlayerActionPacket;
@@ -72,15 +73,17 @@ class ViaVersion extends PluginBase implements Listener{
             } catch(\RuntimeException $e){}
             $hash = spl_object_hash($player);
             $protocol = $this->protocol[$hash];
-            if($protocol > 419 && $protocol !== ProtocolInfo::CURRENT_PROTOCOL){
+            if($protocol > 422 && $protocol !== ProtocolInfo::CURRENT_PROTOCOL){
                 $event->setCancelled();
                 $enteries = [];
                 foreach($packet->entries as $entry){
                     if($entry->username === null && $entry->entityUniqueId === null){
                         continue;
                     } else {
-                        $p = $this->players[TextFormat::clean($entry->username)];
+                        $p = $this->players[TextFormat::clean($entry->username)] ?? null;
                     }
+                    if($p === null)
+                        return;
                     $h = spl_object_hash($p);
                     $oP = $this->protocol[$h] ?? 419;
                     switch($oP){
@@ -99,7 +102,7 @@ class ViaVersion extends PluginBase implements Listener{
                 $pk->type = $packet->type;
                 $this->getLogger()->debug("sent new player list packet");
                 $player->sendDataPacket($pk, false, true);
-            } elseif($protocol <= 419 && $protocol !== ProtocolInfo::CURRENT_PROTOCOL){
+            } elseif($protocol <= 422 && $protocol !== ProtocolInfo::CURRENT_PROTOCOL){
                 $event->setCancelled();
                 $enteries = [];
                 foreach($packet->entries as $entry){
@@ -114,7 +117,7 @@ class ViaVersion extends PluginBase implements Listener{
             /** @var StartGamePacket $packet */
             $hash = spl_object_hash($player);
             $protocol = $this->protocol[$hash];
-            if($protocol > 419 && $protocol !== ProtocolInfo::CURRENT_PROTOCOL){
+            if($protocol > 422 && $protocol !== ProtocolInfo::CURRENT_PROTOCOL){
                 $event->setCancelled();
                 $pk = StartGamePacket428::from($packet);
                 $this->getLogger()->debug("sent new start game packet");
@@ -133,15 +136,17 @@ class ViaVersion extends PluginBase implements Listener{
                 }
                 if(get_class($pk) === PlayerListPacket::class){
                     /** @var PlayerListPacket $pk */
+                    if(count($pk->entries) === 0)
+                        return;
                     foreach($pk->entries as $entry){
                         if($entry->skinData instanceof SkinData428){
+                            $this->getLogger()->debug("oh sh1t nibba fucced up");
                             return;
                         }
-                        break;
                     }
                     $hash = spl_object_hash($player);
                     $protocol = $this->protocol[$hash];
-                    if($protocol > 419 && $protocol !== ProtocolInfo::CURRENT_PROTOCOL){
+                    if($protocol > 422 && $protocol !== ProtocolInfo::CURRENT_PROTOCOL){
                         $enteries = [];
                         foreach($pk->entries as $entry){
                             if($entry->username === null && $entry->entityUniqueId === null){
@@ -151,7 +156,7 @@ class ViaVersion extends PluginBase implements Listener{
                                 $this->getLogger()->debug("username entry={$entry->username}");
                             }
                             if($p === null)
-                                continue;
+                                return;
                             $h = spl_object_hash($p);
                             $oP = $this->protocol[$h] ?? 419;
                             switch($oP){
@@ -187,6 +192,10 @@ class ViaVersion extends PluginBase implements Listener{
         }
 
         $this->lastSentPacket[spl_object_hash($player)] = $packet;
+    }
+
+    public function leave(PlayerQuitEvent $event) : void{
+        unset($this->players[$event->getPlayer()->getName()]);
     }
 
 }
