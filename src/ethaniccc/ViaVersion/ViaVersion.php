@@ -36,14 +36,14 @@ class ViaVersion extends PluginBase implements Listener{
 
     public function onEnable(){
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
-        $this->getScheduler()->scheduleDelayedTask(new ClosureTask(function(int $currentTick) : void{
+        /* $this->getScheduler()->scheduleDelayedTask(new ClosureTask(function(int $currentTick) : void{
             $plugin = $this->getServer()->getPluginManager()->getPlugin("Mockingbird");
             if($plugin !== null){
                 $this->getServer()->getPluginManager()->disablePlugin($plugin);
             }
             // Mockingbird will break the server because of PlayerActionPacket not being sent
             // when playerMovementMode is changed... #BlameMicrojang
-        }), 1);
+        }), 1); */
     }
 
     public function receivePacket(DataPacketReceiveEvent $event) : void{
